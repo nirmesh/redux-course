@@ -1,64 +1,47 @@
 import React, { Component } from "react";
 import { connect } from 'react-redux';
 import * as courseActions from '../redux/actions/courseActions';
+import * as authorActions from '../redux/actions/authorActions';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from "redux";
-
+import courserList from './CourseList';
+import CourseList from "./CourseList";
 
 class CoursesPage extends Component {
-    //   constructor(props) {
-    //     super(props);
-    //     this.state={
-    //         course:{
-    //             title:""
-    //         }
-    //     }
-    //     //this.handleChange=this.handleChange.bind(this)
-    //   }
-
-    state = {
-        course: {
-            title: ""
+   
+    componentDidMount(){
+        if(this.props.courses.length==0){
+            this.props.actions.loadCourses().catch(error=>{
+                alert("loading courses failed.."+error);
+            });
+        }
+        if(this.props.authors.length==0){
+            this.props.actions.loadAuthors().catch(error=>{
+                alert("loading author failed.."+error);
+            });
         }
     }
-    //   handleChange(event){
-    //       const course={...this.state.course,title:event.target.value};
-    //       this.setState({course:course});
-    //   }
 
-    handleChange = (event) => {
-        const course = { ...this.state.course, title: event.target.value };
-        this.setState({ course: course });
-    }
-
-    handleSubmit = event => {
-        event.preventDefault();
-        //this.props.dispatch(courseActions.createCourse(this.state.course));
-        // this.props.createCourse(this.state.course);
-        this.props.actions.createCourse(this.state.course);
-    }
+    
 
     render() {
 
         return (
-            <form onSubmit={this.handleSubmit}>
+            <>
                 <h2>courses</h2>
-                <h3>add course</h3>
-                <input type="text" value={this.state.course.title} onChange={this.handleChange} />
-                <input type="submit" value="save" />
-
-                {this.props.courses.map(course => (
+                {/* {this.props.courses.map(course => (
                     <div key={course.title} >{course.title}</div>
-                ))}
-            </form>
-
+                ))} */}
+                <CourseList courses={this.props.courses}/>
+        </>
         )
     }
 }
 
 CoursesPage.propTypes = {
     //dispatch:PropTypes.func.isRequired,
-    courses: PropTypes.func.isRequired,
+    courses: PropTypes.array.isRequired,
+    authors: PropTypes.array.isRequired,
     // createCourse:PropTypes.func.isRequired,
     actions: PropTypes.object.isRequired
 }
@@ -66,7 +49,12 @@ CoursesPage.propTypes = {
 
 function mapStateToProps(state, ownProps) {
     return {
-        courses: state.afterChange
+        courses: state.authors.length===0?[]:state.afterChange.map(course=>{
+            return {
+                ...course,authorName:state.authors.find(a=>a.id===course.authorId).name
+            }
+        }),
+        authors:state.authors
     }
 }
 // function mapDispatchToProps(dispatch){
@@ -76,7 +64,10 @@ function mapStateToProps(state, ownProps) {
 // }
 function mapDispatchToProps(dispatch) {
     return {
-        actions: bindActionCreators(courseActions, dispatch)
+        actions: {
+            loadCourses: bindActionCreators(courseActions.loadCourses, dispatch),
+            loadAuthors: bindActionCreators(authorActions.loadAuthors, dispatch)
+        }
     }
 }
 
